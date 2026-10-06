@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Sanssoussi
 {
@@ -38,6 +40,18 @@ namespace Sanssoussi
                 options.Cookie.HttpOnly = true;
                 options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict;
                 options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+                options.SlidingExpiration = true;
+            });
+
+            services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidIssuer = "https://accounts.google.com"
+                };
             });
 
             services.AddAntiforgery(options =>

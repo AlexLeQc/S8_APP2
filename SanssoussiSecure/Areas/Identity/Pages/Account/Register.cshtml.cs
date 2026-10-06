@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
@@ -88,10 +88,17 @@ namespace Sanssoussi.Areas.Identity.Pages.Account
                     return this.LocalRedirect(returnUrl);
                 }
 
-                foreach (var error in result.Errors)
+                // Generic fallback if CreateAsync fails (e.g. duplicate email)
+                // We do not want to reveal if the email is already in use
+                this._logger.LogInformation("User creation failed, but redirecting to prevent enumeration.");
+                if (this._userManager.Options.SignIn.RequireConfirmedAccount)
                 {
-                    this.ModelState.AddModelError(string.Empty, error.Description);
+                    return this.RedirectToPage("RegisterConfirmation", new { email = this.Input.Email, returnUrl = returnUrl });
                 }
+
+                // If no confirmation is required, we still shouldn't log them in as the account might belong to someone else.
+                // Redirecting to login is safer.
+                return this.RedirectToPage("Login");
             }
 
             // If we got this far, something failed, redisplay form
