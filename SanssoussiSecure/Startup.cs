@@ -29,6 +29,8 @@ namespace Sanssoussi
                 {
                     options.ClientId = this.Configuration["Authentication:Google:ClientId"];
                     options.ClientSecret = this.Configuration["Authentication:Google:ClientSecret"];
+                    options.CorrelationCookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.None;
+                    options.CorrelationCookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;
                 });
 
             services.ConfigureApplicationCookie(options =>

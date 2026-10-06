@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-
 using Sanssoussi.Areas.Identity.Data;
+using Sanssoussi.Models;
 
 namespace Sanssoussi.Data
 {
@@ -11,6 +11,8 @@ namespace Sanssoussi.Data
             : base(options)
         {
         }
+
+        public DbSet<Comment> Comments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

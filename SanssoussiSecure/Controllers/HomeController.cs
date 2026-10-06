@@ -1,16 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.Sqlite;
-using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 using Sanssoussi.Areas.Identity.Data;
+using Sanssoussi.Data;
 using Sanssoussi.Models;
 
 namespace Sanssoussi.Controllers
@@ -18,17 +19,17 @@ namespace Sanssoussi.Controllers
     [Authorize]
     public class HomeController : Controller
     {
-        private readonly SqliteConnection _dbConnection;
+        private readonly SanssoussiContext _context;
 
         private readonly ILogger<HomeController> _logger;
 
         private readonly UserManager<SanssoussiUser> _userManager;
 
-        public HomeController(ILogger<HomeController> logger, UserManager<SanssoussiUser> userManager, IConfiguration configuration)
+        public HomeController(ILogger<HomeController> logger, UserManager<SanssoussiUser> userManager, SanssoussiContext context)
         {
             this._logger = logger;
             this._userManager = userManager;
-            this._dbConnection = new SqliteConnection(configuration.GetConnectionString("SanssoussiContextConnection"));
+            this._context = context;
         }
 
         [AllowAnonymous]
@@ -49,18 +50,10 @@ namespace Sanssoussi.Controllers
                 return this.View(comments);
             }
 
-            var cmd = new SqliteCommand("Select Comment from Comments where UserId = @UserId", this._dbConnection);
-            cmd.Parameters.AddWithValue("@UserId", user.Id);
-            this._dbConnection.Open();
-            var rd = await cmd.ExecuteReaderAsync();
-
-            while (rd.Read())
-            {
-                comments.Add(rd.GetString(0));
-            }
-
-            rd.Close();
-            this._dbConnection.Close();
+            comments = await this._context.Comments
+                .Where(c => c.UserId == user.Id)
+                .Select(c => c.Text)
+                .ToListAsync();
 
             return this.View(comments);
         }
@@ -75,14 +68,15 @@ namespace Sanssoussi.Controllers
                 throw new InvalidOperationException("Vous devez vous connecter");
             }
 
-            var cmd = new SqliteCommand(
-                "insert into Comments (UserId, CommentId, Comment) Values (@UserId, @CommentId, @Comment)",
-                this._dbConnection);
-            cmd.Parameters.AddWithValue("@UserId", user.Id);
-            cmd.Parameters.AddWithValue("@CommentId", Guid.NewGuid().ToString());
-            cmd.Parameters.AddWithValue("@Comment", comment);
-            this._dbConnection.Open();
-            await cmd.ExecuteNonQueryAsync();
+            var newComment = new Comment
+            {
+                CommentId = Guid.NewGuid().ToString(),
+                UserId = user.Id,
+                Text = comment
+            };
+
+            this._context.Comments.Add(newComment);
+            await this._context.SaveChangesAsync();
 
             return this.Ok("Commentaire ajouté");
         }
@@ -97,18 +91,10 @@ namespace Sanssoussi.Controllers
                 return this.View(searchResults);
             }
 
-            var cmd = new SqliteCommand("Select Comment from Comments where UserId = @UserId and Comment like @SearchData", this._dbConnection);
-            cmd.Parameters.AddWithValue("@UserId", user.Id);
-            cmd.Parameters.AddWithValue("@SearchData", "%" + searchData + "%");
-            this._dbConnection.Open();
-            var rd = await cmd.ExecuteReaderAsync();
-            while (rd.Read())
-            {
-                searchResults.Add(rd.GetString(0));
-            }
-
-            rd.Close();
-            this._dbConnection.Close();
+            searchResults = await this._context.Comments
+                .Where(c => c.UserId == user.Id && c.Text.Contains(searchData))
+                .Select(c => c.Text)
+                .ToListAsync();
 
             return this.View(searchResults);
         }
@@ -144,19 +130,7 @@ namespace Sanssoussi.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Emails(object form)
         {
-            var searchResults = new List<string>();
-
-            var cmd = new SqliteCommand("select Email from AspNetUsers", this._dbConnection);
-            this._dbConnection.Open();
-            var rd = await cmd.ExecuteReaderAsync();
-            while (rd.Read())
-            {
-                searchResults.Add(rd.GetString(0));
-            }
-
-            rd.Close();
-            this._dbConnection.Close();
-
+            var searchResults = await this._userManager.Users.Select(u => u.Email).ToListAsync();
             return this.Json(searchResults);
         }
     }
