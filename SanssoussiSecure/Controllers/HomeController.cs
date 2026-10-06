@@ -47,6 +47,7 @@ namespace Sanssoussi.Controllers
             var user = await this._userManager.GetUserAsync(this.User);
             if (user == null)
             {
+                this._logger.LogWarning("Tentative d'accès anonyme refusée au GET Comments depuis l'IP {IP}", this.Request.HttpContext.Connection.RemoteIpAddress);
                 return this.View(comments);
             }
 
@@ -65,11 +66,13 @@ namespace Sanssoussi.Controllers
             var user = await this._userManager.GetUserAsync(this.User);
             if (user == null)
             {
+                this._logger.LogWarning("Tentative d'accès non autorisé au POST Comments depuis l'IP {IP}", this.Request.HttpContext.Connection.RemoteIpAddress);
                 throw new InvalidOperationException("Vous devez vous connecter");
             }
 
             if (!ModelState.IsValid)
             {
+                this._logger.LogWarning("Tentative de soumission d'un commentaire invalide par l'utilisateur {UserId} depuis l'IP {IP}", user.Id, this.Request.HttpContext.Connection.RemoteIpAddress);
                 return BadRequest("Commentaire invalide.");
             }
 
@@ -93,6 +96,10 @@ namespace Sanssoussi.Controllers
             var user = await this._userManager.GetUserAsync(this.User);
             if (user == null || string.IsNullOrEmpty(searchData))
             {
+                if (user == null)
+                {
+                    this._logger.LogWarning("Tentative d'accès anonyme refusée au GET Search depuis l'IP {IP}", this.Request.HttpContext.Connection.RemoteIpAddress);
+                }
                 return this.View(searchResults);
             }
 
@@ -135,6 +142,7 @@ namespace Sanssoussi.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Emails(object form)
         {
+            this._logger.LogInformation("L'administrateur {User} a accédé à la liste des courriels depuis l'IP {IP}", this.User.Identity.Name, this.Request.HttpContext.Connection.RemoteIpAddress);
             var searchResults = await this._userManager.Users.Select(u => u.Email).ToListAsync();
             return this.Json(searchResults);
         }
