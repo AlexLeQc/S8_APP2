@@ -49,7 +49,8 @@ namespace Sanssoussi.Controllers
                 return this.View(comments);
             }
 
-            var cmd = new SqliteCommand($"Select Comment from Comments where UserId ='{user.Id}'", this._dbConnection);
+            var cmd = new SqliteCommand("Select Comment from Comments where UserId = @UserId", this._dbConnection);
+            cmd.Parameters.AddWithValue("@UserId", user.Id);
             this._dbConnection.Open();
             var rd = await cmd.ExecuteReaderAsync();
 
@@ -75,8 +76,11 @@ namespace Sanssoussi.Controllers
             }
 
             var cmd = new SqliteCommand(
-                $"insert into Comments (UserId, CommentId, Comment) Values ('{user.Id}','{Guid.NewGuid()}','" + comment + "')",
+                "insert into Comments (UserId, CommentId, Comment) Values (@UserId, @CommentId, @Comment)",
                 this._dbConnection);
+            cmd.Parameters.AddWithValue("@UserId", user.Id);
+            cmd.Parameters.AddWithValue("@CommentId", Guid.NewGuid().ToString());
+            cmd.Parameters.AddWithValue("@Comment", comment);
             this._dbConnection.Open();
             await cmd.ExecuteNonQueryAsync();
 
@@ -93,7 +97,9 @@ namespace Sanssoussi.Controllers
                 return this.View(searchResults);
             }
 
-            var cmd = new SqliteCommand($"Select Comment from Comments where UserId = '{user.Id}' and Comment like '%{searchData}%'", this._dbConnection);
+            var cmd = new SqliteCommand("Select Comment from Comments where UserId = @UserId and Comment like @SearchData", this._dbConnection);
+            cmd.Parameters.AddWithValue("@UserId", user.Id);
+            cmd.Parameters.AddWithValue("@SearchData", "%" + searchData + "%");
             this._dbConnection.Open();
             var rd = await cmd.ExecuteReaderAsync();
             while (rd.Read())
