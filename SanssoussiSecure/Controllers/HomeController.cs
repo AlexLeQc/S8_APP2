@@ -60,7 +60,7 @@ namespace Sanssoussi.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Comments(string comment)
+        public async Task<IActionResult> Comments([FromForm] CommentInputModel input)
         {
             var user = await this._userManager.GetUserAsync(this.User);
             if (user == null)
@@ -68,11 +68,16 @@ namespace Sanssoussi.Controllers
                 throw new InvalidOperationException("Vous devez vous connecter");
             }
 
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Commentaire invalide.");
+            }
+
             var newComment = new Comment
             {
                 CommentId = Guid.NewGuid().ToString(),
                 UserId = user.Id,
-                Text = comment
+                Text = input.Comment
             };
 
             this._context.Comments.Add(newComment);
@@ -133,5 +138,12 @@ namespace Sanssoussi.Controllers
             var searchResults = await this._userManager.Users.Select(u => u.Email).ToListAsync();
             return this.Json(searchResults);
         }
+    }
+
+    public class CommentInputModel
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Le commentaire est requis.")]
+        [System.ComponentModel.DataAnnotations.StringLength(1000, ErrorMessage = "Le commentaire ne peut pas dépasser 1000 caractères.")]
+        public string Comment { get; set; }
     }
 }
