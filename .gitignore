@@ -39,3 +39,6 @@ bld/
 *.db-shm
 *.db-wal
 appsettings.Development.json
+
+## Agent
+.agents/

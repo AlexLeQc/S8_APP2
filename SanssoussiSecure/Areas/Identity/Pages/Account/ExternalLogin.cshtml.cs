@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -118,7 +118,7 @@ namespace Sanssoussi.Areas.Identity.Pages.Account
 
             if (this.ModelState.IsValid)
             {
-                var user = new SanssoussiUser { UserName = this.Input.Email, Email = this.Input.Email };
+                var user = new SanssoussiUser { UserName = this.Input.Email, Email = this.Input.Email, EmailConfirmed = true };
 
                 var result = await this._userManager.CreateAsync(user);
                 if (result.Succeeded)

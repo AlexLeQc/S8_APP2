@@ -15,14 +15,19 @@ namespace Sanssoussi
             this.Configuration = configuration;
         }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddRazorPages();
             services.AddControllersWithViews();
+
+            services.AddAuthentication()
+                .AddGoogle(options =>
+                {
+                    options.ClientId = this.Configuration["Authentication:Google:ClientId"];
+                    options.ClientSecret = this.Configuration["Authentication:Google:ClientSecret"];
+                });
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
@@ -52,4 +57,4 @@ namespace Sanssoussi
                 });
         }
     }
-}
+}

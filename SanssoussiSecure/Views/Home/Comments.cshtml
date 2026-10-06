@@ -1,5 +1,7 @@
-﻿@{
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@{
     ViewData["Title"] = "Comments";
+    var token = Antiforgery.GetAndStoreTokens(Context).RequestToken;
 }
 
 @model List<string>
@@ -13,6 +15,7 @@
     </div>
 }
 
+<input id="__RequestVerificationToken" type="hidden" value="@token" />
 <textarea rows="2" cols="20" id="NewComment" style="display:none;"></textarea>
 
 <input id="NewCommentsBtn" onclick="AddComments();" value="Nouveau commentaire" type="button" />

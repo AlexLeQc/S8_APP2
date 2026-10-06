@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 using System.Threading.Tasks;
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
@@ -15,6 +15,7 @@ using Sanssoussi.Models;
 
 namespace Sanssoussi.Controllers
 {
+    [Authorize]
     public class HomeController : Controller
     {
         private readonly SqliteConnection _dbConnection;
@@ -30,6 +31,7 @@ namespace Sanssoussi.Controllers
             this._dbConnection = new SqliteConnection(configuration.GetConnectionString("SanssoussiContextConnection"));
         }
 
+        [AllowAnonymous]
         public IActionResult Index()
         {
             this.ViewData["Message"] = "Parce que marcher devrait se faire SansSoussi";
@@ -63,6 +65,7 @@ namespace Sanssoussi.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Comments(string comment)
         {
             var user = await this._userManager.GetUserAsync(this.User);
@@ -104,52 +107,51 @@ namespace Sanssoussi.Controllers
             return this.View(searchResults);
         }
 
+        [AllowAnonymous]
         public IActionResult About()
         {
             return this.View();
         }
 
+        [AllowAnonymous]
         public IActionResult Privacy()
         {
             return this.View();
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        [AllowAnonymous]
         public IActionResult Error()
         {
             return this.View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? this.HttpContext.TraceIdentifier });
         }
 
         [HttpGet]
+        [Authorize(Roles = "admin")]
         public IActionResult Emails()
         {
             return this.View();
         }
 
         [HttpPost]
+        [Authorize(Roles = "admin")]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Emails(object form)
         {
             var searchResults = new List<string>();
 
-            var user = await this._userManager.GetUserAsync(this.User);
-            var roles = await this._userManager.GetRolesAsync(user);
-            if (roles.Contains("admin"))
+            var cmd = new SqliteCommand("select Email from AspNetUsers", this._dbConnection);
+            this._dbConnection.Open();
+            var rd = await cmd.ExecuteReaderAsync();
+            while (rd.Read())
             {
-                var cmd = new SqliteCommand("select Email from AspNetUsers", this._dbConnection);
-                this._dbConnection.Open();
-                var rd = await cmd.ExecuteReaderAsync();
-                while (rd.Read())
-                {
-                    searchResults.Add(rd.GetString(0));
-                }
-
-                rd.Close();
-
-                this._dbConnection.Close();
+                searchResults.Add(rd.GetString(0));
             }
+
+            rd.Close();
+            this._dbConnection.Close();
 
             return this.Json(searchResults);
         }
     }
-}
+}

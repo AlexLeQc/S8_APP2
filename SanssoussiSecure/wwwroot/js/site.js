@@ -1,4 +1,4 @@
-﻿// Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
+// Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
 // for details on configuring this project to bundle and minify static web assets.
 
 function AddComments() {
@@ -10,7 +10,10 @@ function AddComments() {
         $.ajax({
                 url: ResolveUrl("~/home/comments"),
                 type: "POST",
-                data: { comment: $("#NewComment").val() },
+                data: {
+                    comment: $("#NewComment").val(),
+                    __RequestVerificationToken: $("#__RequestVerificationToken").val()
+                },
                 success: function (status) {
                     if (status != "success") {
                         alert(status);
