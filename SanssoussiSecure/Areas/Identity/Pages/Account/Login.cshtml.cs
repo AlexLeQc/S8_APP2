@@ -50,7 +50,7 @@ namespace Sanssoussi.Areas.Identity.Pages.Account
                 this.ModelState.AddModelError(string.Empty, this.ErrorMessage);
             }
 
-            returnUrl = returnUrl ?? this.Url.Content("~/");
+            this._logger.LogInformation("ReturnUrl received in OnPost: " + returnUrl); returnUrl = returnUrl ?? this.Url.Content("~/");
 
             // Clear the existing external cookie to ensure a clean login process
             await this.HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
@@ -62,7 +62,7 @@ namespace Sanssoussi.Areas.Identity.Pages.Account
 
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
-            returnUrl = returnUrl ?? this.Url.Content("~/");
+            this._logger.LogInformation("ReturnUrl received in OnPost: " + returnUrl); returnUrl = returnUrl ?? this.Url.Content("~/");
 
             if (this.ModelState.IsValid)
             {
