@@ -5,10 +5,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
 
 namespace Sanssoussi
@@ -93,14 +91,11 @@ namespace Sanssoussi
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            // Principe Failing Secure : On force la capture des exceptions sans fuite de stack trace,
-            // même si la variable d'environnement est accidentellement 'Development'
             app.UseExceptionHandler("/Home/Error");
             app.UseHsts();
 
             app.UseHttpsRedirection();
             
-            // Appliquer la limite de requêtes globale
             app.UseRateLimiter();
 
             app.Use(async (context, next) =>
