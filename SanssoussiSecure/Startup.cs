@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using System.Threading.RateLimiting;
+using Sanssoussi.Security;
 
 namespace Sanssoussi
 {
@@ -76,10 +77,7 @@ namespace Sanssoussi
                 options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;
             });
 
-            services.Configure<PasswordHasherOptions>(options =>
-            {
-                options.IterationCount = 600000;
-            });
+            services.AddScoped<IPasswordHasher<Sanssoussi.Areas.Identity.Data.SanssoussiUser>, CustomPasswordHasher>();
 
             services.AddHsts(options =>
             {

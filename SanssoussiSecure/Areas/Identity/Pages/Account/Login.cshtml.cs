@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
@@ -72,7 +72,7 @@ namespace Sanssoussi.Areas.Identity.Pages.Account
                                  this.Input.Email,
                                  this.Input.Password,
                                  this.Input.RememberMe,
-                                 lockoutOnFailure: false);
+                                 lockoutOnFailure: true);
                 if (result.Succeeded)
                 {
                     this._logger.LogInformation("User logged in.");
